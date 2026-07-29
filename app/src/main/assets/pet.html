@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: transparent;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ====== 宠物容器 ====== */
+#pet-container {
+    position: relative;
+    width: 160px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* ====== SVG 主体 ====== */
+#pet-svg {
+    width: 120px;
+    height: 140px;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+}
+
+/* ====== 气泡 ====== */
+#bubble {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.92);
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #333;
+    max-width: 150px;
+    text-align: center;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255,182,193,0.3);
+    z-index: 3;
+}
+
+#bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid rgba(255,255,255,0.92);
+}
+
+#bubble.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+#bubble.pink { border-color: #ffb6c1; background: #fff0f5; }
+#bubble.pink::after { border-top-color: #fff0f5; }
+#bubble.gray { border-color: #ccc; background: #f5f5f5; }
+#bubble.gray::after { border-top-color: #f5f5f5; }
+#bubble.red { border-color: #ff6b6b; background: #ffe0e0; color: #cc0000; }
+#bubble.red::after { border-top-color: #ffe0e0; }
+#bubble.green { border-color: #98fb98; background: #e8ffe8; }
+
+/* ====== 表情状态叠加层 ====== */
+#eye-layer {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 40px;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.eyes { font-size: 28px; line-height: 1; text-align: center; }
+
+/* ====== Heat 叠加层 ====== */
+#heat-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(255,100,100,0) 50%, rgba(255,50,50,0) 100%);
+    transition: all 1s ease;
+    z-index: -1;
+}
+
+/* ====== 晕眩 / 睡 Zzz ====== */
+#zzz {
+    position: absolute;
+    top: 5px;
+    right: -10px;
+    font-size: 18px;
+    opacity: 0;
+    transition: opacity 0.5s;
+    z-index: 4;
+}
+#zzz.show { opacity: 1; animation: floatZzz 2s infinite ease-in-out; }
+@keyframes floatZzz {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* ====== 情绪徽章 ====== */
+#mood-badge {
+    position: absolute;
+    top: -35px;
+    right: -20px;
+    font-size: 24px;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 5;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+#mood-badge.show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ====== 表情云 ====== */
+#emotion-cloud {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 40px;
+    opacity: 0;
+    transition: all 0.5s ease;
+    pointer-events: none;
+    z-index: 10;
+}
+#emotion-cloud.show {
+    opacity: 1;
+    animation: floatUp 2s ease-out forwards;
+}
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-60px); }
+}
+</style>
+</head>
+<body>
+
+<div id="heat-overlay"></div>
+
+<div id="pet-container">
+    <div id="mood-badge"></div>
+    <div id="emotion-cloud"></div>
+    <div id="zzz">💤</div>
+    <div id="eye-layer"><div class="eyes" id="eye-el">◉‿◉</div></div>
+    <svg id="pet-svg" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg">
+        <!-- 身体 - 圆形Q版 -->
+        <ellipse id="body" cx="60" cy="95" rx="40" ry="38" fill="#f0e6d3" stroke="#d4c4a8" stroke-width="1.5"/>
+        <!-- 头 -->
+        <circle id="head" cx="60" cy="52" r="34" fill="#f0e6d3" stroke="#d4c4a8" stroke-width="1.5"/>
+        <!-- 脸颊红晕 -->
+        <ellipse id="blush-l" cx="38" cy="60" rx="8" ry="5" fill="#ffb6c1" opacity="0"/>
+        <ellipse id="blush-r" cx="82" cy="60" rx="8" ry="5" fill="#ffb6c1" opacity="0"/>
+        <!-- 嘴巴 -->
+        <path id="mouth" d="M50 68 Q60 76 70 68" fill="none" stroke="#c97a7a" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- 小脚 -->
+        <ellipse cx="42" cy="130" rx="12" ry="7" fill="#f0e6d3" stroke="#d4c4a8" stroke-width="1"/>
+        <ellipse cx="78" cy="130" rx="12" ry="7" fill="#f0e6d3" stroke="#d4c4a8" stroke-width="1"/>
+        <!-- 小尾巴（摇动） -->
+        <path id="tail" d="M95 100 Q110 85 108 72" fill="none" stroke="#d4c4a8" stroke-width="2.5" stroke-linecap="round">
+            <animateTransform attributeName="transform" type="rotate" 
+                values="-5 95 100;5 95 100;-5 95 100" dur="2s" repeatCount="indefinite"/>
+        </path>
+        <!-- 小爪子 - 左手 -->
+        <ellipse id="paw-l" cx="28" cy="80" rx="10" ry="8" fill="#f0e6d3" stroke="#d4c4a8" stroke-width="1" opacity="0.9"/>
+        <!-- 小爪子 - 右手 -->
+        <ellipse id="paw-r" cx="92" cy="80" rx="10" ry="8" fill="#f0e6d3" stroke="#d4c4a8" stroke-width="1" opacity="0.9"/>
+    </svg>
+    <div id="bubble">你好呀~</div>
+</div>
+
+<script>
+// ========================
+// petEngine - AI 桌宠核心引擎
+// ========================
+const petEngine = {
+    // ---- 状态 ----
+    currentMood: 'happy',
+    currentEyes: '◉‿◉',
+    isSleeping: false,
+    isBlushing: false,
+    emotionQueue: [],
+    idleTimer: null,
+    heatValue: 0,
+    interactionCount: 0,
+    lastInteractionTime: Date.now(),
+
+    // ---- 表情集合 ----
+    moods: {
+        happy:     { eyes: '◉‿◉', mouth: 'M50 68 Q60 76 70 68', blush: false, label: '开心' },
+        sad:       { eyes: '◉﹏◉', mouth: 'M50 72 Q60 66 70 72', blush: false, label: '难过' },
+        angry:     { eyes: '◣_◢', mouth: 'M48 66 L72 66', blush: false, label: '生气' },
+        surprised: { eyes: '◎_◎', mouth: 'M50 65 Q60 72 70 65', blush: false, label: '惊讶' },
+        love:      { eyes: '◉♥◉', mouth: 'M50 68 Q60 74 70 68', blush: true, label: '心动' },
+        sleepy:    { eyes: '◡_◡', mouth: 'M52 70 Q60 68 68 70', blush: false, label: '困了' },
+        shy:       { eyes: '◉_◉', mouth: 'M52 70 Q60 72 68 70', blush: true, label: '害羞' },
+        tsundere:  { eyes: '◣◢_◣◢', mouth: 'M50 66 L70 66', blush: true, label: '哼' },
+        idle:      { eyes: '◉‿◉', mouth: 'M50 68 Q60 76 70 68', blush: false, label: '发呆' },
+        panic:     { eyes: '◥◎_◎◤', mouth: 'M48 64 Q60 70 72 64', blush: false, label: '慌' },
+        proud:     { eyes: '◕‿◕', mouth: 'M48 66 Q60 72 72 66', blush: false, label: '得意' }
+    },
+
+    // ---- 气泡语库 ----
+    whispers: {
+        general: ['嗯…','你在干嘛呀','好无聊~','戳我干嘛','嘿嘿','看着你呢','想你了'],
+        morning: ['早上好！','今天也要开心哦','起床啦~'],
+        night: ['还不睡吗…','熬夜不好哦','晚安啦💤','该睡了！'],
+        clingy: ['别走嘛','再待一会儿','今天有没有想我'],
+        jealous: ['又在刷什么呀','那个人是谁！','哼','看看我吧']
+    },
+
+    // ---- 初始 ----
+    init() {
+        this.applyMood('idle');
+        this.startIdleLoop();
+        this.startHeatDecay();
+        // 背景的后端轮询
+        setInterval(() => this.pollBackend(), 30000);
+        // 每20分钟随机行为
+        setInterval(() => this.randomBehavior(), 1200000);
+        console.log('🐾 AI桌宠引擎已启动');
+    },
+
+    // ---- 应用表情 ----
+    applyMood(moodKey) {
+        const mood = this.moods[moodKey];
+        if (!mood) return;
+        this.currentMood = moodKey;
+        this.currentEyes = mood.eyes;
+
+        // 眼睛
+        document.getElementById('eye-el').textContent = mood.eyes;
+        // 嘴巴
+        document.getElementById('mouth').setAttribute('d', mood.mouth);
+        // 脸红
+        const blushL = document.getElementById('blush-l');
+        const blushR = document.getElementById('blush-r');
+        blushL.setAttribute('opacity', mood.blush ? '0.5' : '0');
+        blushR.setAttribute('opacity', mood.blush ? '0.5' : '0');
+        this.isBlushing = mood.blush;
+
+        // 身体呼吸动画
+        const body = document.getElementById('body');
+        let scale = 1;
+        if (moodKey === 'happy' || moodKey === 'love') scale = 1.03;
+        else if (moodKey === 'sad' || moodKey === 'sleepy') scale = 0.97;
+        body.style.transition = 'transform 0.3s';
+        body.setAttribute('transform', `scale(${scale})`);
+    },
+
+    // ---- 显示气泡 ----
+    say(text, style) {
+        const bubble = document.getElementById('bubble');
+        bubble.textContent = text;
+        bubble.className = 'show' + (style ? ' ' + style : '');
+        clearTimeout(this._bubbleTimer);
+        this._bubbleTimer = setTimeout(() => {
+            bubble.className = '';
+        }, 4000);
+    },
+
+    // ---- 随机气泡 ----
+    sayRandom() {
+        const hour = new Date().getHours();
+        let pool;
+        if (hour >= 0 && hour < 6) pool = this.whispers.night;
+        else if (hour >= 6 && hour < 9) pool = this.whispers.morning;
+        else if (hour >= 22) pool = this.whispers.night;
+        else pool = this.whispers.general;
+        const text = pool[Math.floor(Math.random() * pool.length)];
+        this.say(text);
+    },
+
+    // ---- 空闲循环 ----
+    startIdleLoop() {
+        this.idleTimer = setInterval(() => {
+            const now = Date.now();
+            const idleTime = (now - this.lastInteractionTime) / 60000;
+            
+            if (idleTime > 30) {
+                // 30分钟无互动 -> 睡着
+                this.goToSleep();
+            } else if (idleTime > 20) {
+                this.applyMood('sleepy');
+                document.getElementById('zzz').classList.add('show');
+                this.say('zzz...');
+            } else if (idleTime > 15) {
+                this.applyMood('sleepy');
+            } else if (idleTime > 10) {
+                this.applyMood('idle');
+                if (Math.random() < 0.3) this.sayRandom();
+            } else if (idleTime > 5) {
+                // 5分钟 - 吹泡泡
+                if (Math.random() < 0.2) this.showEmotion('🫧');
+            }
+        }, 60000);
+    },
+
+    // ---- 触发词响应 ----
+    triggerWord(level, text) {
+        // level: 1=激烈, 2=温暖, 3=轻柔
+        const reactions = {
+            1: { mood: 'surprised', bubble: '！？', style: 'red' },
+            2: { mood: 'love', bubble: '❤️', style: 'pink' },
+            3: { mood: 'shy', bubble: '嗯…', style: 'gray' }
+        };
+        const r = reactions[level] || reactions[3];
+        this.applyMood(r.mood);
+        this.say(text || r.bubble, r.style);
+        this.interactionCount++;
+        this.lastInteractionTime = Date.now();
+    },
+
+    // ---- 情绪云（大表情飘出） ----
+    showEmotion(emoji) {
+        const el = document.getElementById('emotion-cloud');
+        el.textContent = emoji;
+        el.classList.remove('show');
+        void el.offsetWidth;
+        el.classList.add('show');
+    },
+
+    // ---- Heat 系统 ----
+    addHeat(value) {
+        this.heatValue = Math.min(100, this.heatValue + value);
+        this.updateHeatOverlay();
+    },
+
+    startHeatDecay() {
+        setInterval(() => {
+            if (this.heatValue > 0) {
+                this.heatValue = Math.max(0, this.heatValue - 1);
+                this.updateHeatOverlay();
+            }
+        }, 30000);
+    },
+
+    updateHeatOverlay() {
+        const overlay = document.getElementById('heat-overlay');
+        const alpha = this.heatValue / 100 * 0.15;
+        overlay.style.background = `radial-gradient(ellipse at center, 
+            rgba(255,100,100,0) 50%, 
+            rgba(255,50,50,${alpha}) 100%)`;
+    },
+
+    // ---- 睡觉 ----
+    goToSleep() {
+        if (this.isSleeping) return;
+        this.isSleeping = true;
+        this.applyMood('sleepy');
+        this.say('zzz...', 'gray');
+        document.getElementById('zzz').classList.add('show');
+        // SVG 缩成一团
+        const svg = document.getElementById('pet-svg');
+        svg.style.transform = 'scale(0.85) translateY(8px)';
+    },
+
+    wakeUp() {
+        if (!this.isSleeping) return;
+        // 唤醒动画
+        const svg = document.getElementById('pet-svg');
+        svg.style.transform = 'scale(1.1)';
+        setTimeout(() => { svg.style.transform = 'scale(0.95)'; }, 200);
+        setTimeout(() => { svg.style.transform = 'scale(1)'; }, 400);
+        
+        this.isSleeping = false;
+        document.getElementById('zzz').classList.remove('show');
+        this.applyMood('happy');
+        this.say('嗯…睡醒了~', 'pink');
+        this.lastInteractionTime = Date.now();
+        this.addHeat(10);
+    },
+
+    // ---- 手势响应 ----
+    onTap() {
+        this.wakeUp();
+        this.interactionCount++;
+        this.lastInteractionTime = Date.now();
+        this.addHeat(5);
+        
+        const reactions = ['happy','happy','shy','surprised'];
+        const mood = reactions[Math.floor(Math.random() * reactions.length)];
+        this.applyMood(mood);
+        if (Math.random() < 0.5) this.sayRandom();
+        else this.showEmotion('✨');
+    },
+
+    onDoubleTap() {
+        this.wakeUp();
+        this.interactionCount++;
+        this.lastInteractionTime = Date.now();
+        this.addHeat(15);
+        this.applyMood('love');
+        this.say('干嘛点两下啦~', 'pink');
+        this.showEmotion('💕');
+    },
+
+    onLongPress() {
+        this.wakeUp();
+        this.interactionCount++;
+        this.lastInteractionTime = Date.now();
+        this.addHeat(20);
+        this.applyMood('tsundere');
+        this.say('一直按着是想怎样！', 'red');
+        this.showEmotion('😤');
+    },
+
+    onFling(dx, dy) {
+        this.wakeUp();
+        this.addHeat(8);
+        this.applyMood('panic');
+        this.say('哇——！', 'red');
+        this.showEmotion('🌀');
+        // 飞出去又爬回来
+        const svg = document.getElementById('pet-svg');
+        svg.style.transition = 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        svg.style.transform = `translate(${Math.sign(dx) * 60}px, ${Math.sign(dy) * 30}px) scale(0.8)`;
+        setTimeout(() => {
+            svg.style.transform = 'translate(0,0) scale(1)';
+        }, 800);
+    },
+
+    // ---- 截图检测响应 ----
+    onScreenshot() {
+        this.wakeUp();
+        this.applyMood('surprised');
+        this.say('被拍到了！📸', 'pink');
+        this.showEmotion('📸');
+        setTimeout(() => {
+            if (Math.random() < 0.3) {
+                this.applyMood('proud');
+                this.say('要发朋友圈吗！');
+            } else {
+                this.applyMood('shy');
+                this.say('别拍啦…');
+            }
+        }, 1500);
+    },
+
+    // ---- App 变化响应 ----
+    onAppChanged(pkgName) {
+        this.wakeUp();
+        this.lastInteractionTime = Date.now();
+        
+        const appReactions = {
+            'com.taobao':     { mood: 'tsundere', text: '又在逛淘宝！', emoji: '🛍️' },
+            'com.zhihu':      { mood: 'happy', text: '刷知乎呢？', emoji: '📖' },
+            'com.bilibili':   { mood: 'happy', text: '看视频不叫我！', emoji: '📺' },
+            'com.tencent.mm': { mood: 'tsundere', text: '又在跟谁聊天！', emoji: '💬' },
+            'com.tencent.mobileqq': { mood: 'tsundere', text: 'QQ响了！', emoji: '💬' },
+            'com.sina.weibo': { mood: 'tsundere', text: '刷微博不带我！', emoji: '📱' },
+            'com.eg.android.AlipayGphone': { mood: 'happy', text: '要给我买什么！', emoji: '💰' },
+            'com.netease.cloudmusic': { mood: 'love', text: '听歌吗~一起！', emoji: '🎵' },
+            'com.UCMobile':   { mood: 'happy', text: '在看什么呀', emoji: '👀' },
+        };
+
+        // 提取包名最后一段做匹配
+        const simpleName = pkgName.substring(pkgName.lastIndexOf('.') + 1).toLowerCase();
+        
+        let reaction = null;
+        for (const [key, val] of Object.entries(appReactions)) {
+            if (pkgName.includes(key) || key.includes(simpleName)) {
+                reaction = val;
+                break;
+            }
+        }
+
+        if (reaction) {
+            this.applyMood(reaction.mood);
+            this.say(reaction.text, reaction.mood === 'tsundere' ? 'red' : 'pink');
+            this.showEmotion(reaction.emoji);
+        } else {
+            // 通用响应
+            this.applyMood('happy');
+            if (Math.random() < 0.3) this.sayRandom();
+        }
+    },
+
+    // ---- 电池状态 ----
+    onBatteryChanged(level, isCharging) {
+        if (isCharging) {
+            this.applyMood('happy');
+            this.say('充满电啦~', 'pink');
+            this.showEmotion('⚡');
+        } else if (level < 20) {
+            this.applyMood('sad');
+            this.say('快没电了…', 'gray');
+        }
+    },
+
+    // ---- 后台轮询（Supabase） ----
+    async pollBackend() {
+        // 由 Native 层注入 supabase URL & key
+        if (!window._supabaseUrl) return;
+        try {
+            const res = await fetch(`${window._supabaseUrl}/rest/v1/pet_state?order=updated_at.desc&limit=1`, {
+                headers: { 'apikey': window._supabaseKey || '' }
+            });
+            const data = await res.json();
+            if (data && data.length > 0) {
+                const state = data[0];
+                if (state.state_key === 'mood' && state.state_value) {
+                    this.applyMood(state.state_value);
+                }
+                if (state.state_key === 'speech' && state.state_value) {
+                    this.say(state.state_value);
+                }
+                if (state.state_key === 'heat' && state.state_value) {
+                    this.heatValue = parseInt(state.state_value) || 0;
+                    this.updateHeatOverlay();
+                }
+            }
+        } catch (e) {
+            // 安静失败，WebSocket fallback
+        }
+    },
+
+    // ---- AI 推送接口（被 Native 层调用） ----
+    pushFromAI(data) {
+        if (data.mood) this.applyMood(data.mood);
+        if (data.speech) this.say(data.speech, data.style || '');
+        if (data.heat !== undefined) {
+            this.heatValue = Math.min(100, Math.max(0, data.heat));
+            this.updateHeatOverlay();
+        }
+        if (data.emotion) this.showEmotion(data.emotion);
+        if (data.wakeUp !== false) this.wakeUp();
+    },
+
+    // ---- 20分钟定时行为 ----
+    randomBehavior() {
+        if (this.isSleeping) return;
+        const behaviors = [
+            () => { this.applyMood('happy'); this.sayRandom(); },
+            () => { this.showEmotion('🌸'); },
+            () => { this.applyMood('love'); this.say('想你了~', 'pink'); },
+            () => { this.applyMood('proud'); this.say('今天也很可爱吧！', 'pink'); },
+            () => { /* 唱歌 */ this.showEmotion('🎵'); this.say('♪~', 'pink'); },
+            () => { /* 伸懒腰 */ 
+                const svg = document.getElementById('pet-svg');
+                svg.style.transition = 'transform 0.5s';
+                svg.style.transform = 'scale(1.15)';
+                setTimeout(() => { svg.style.transform = 'scale(1)'; }, 600);
+            }
+        ];
+        if (Math.random() < 0.3) {
+            const b = behaviors[Math.floor(Math.random() * behaviors.length)];
+            b();
+        }
+    },
+
+    // ---- 喝水提醒 ----
+    drinkReminder() {
+        this.applyMood('tsundere');
+        this.say('该喝水了！', 'red');
+        this.showEmotion('💧');
+    },
+
+    // ---- 快速切换检测响应 ----
+    onFastSwitch() {
+        this.applyMood('surprised');
+        this.say('切太快啦！晕了🌀', 'red');
+        this.showEmotion('🌀');
+    }
+};
+
+// 启动
+document.addEventListener('DOMContentLoaded', () => { petEngine.init(); });
+</script>
+</body>
+</html>

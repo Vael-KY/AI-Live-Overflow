@@ -1,0 +1,2 @@
+rootProject.name = 'AI-Live-Overflow'
+include ':app'
