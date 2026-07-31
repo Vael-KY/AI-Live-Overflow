@@ -1,5 +1,5 @@
 package com.example.deskpet.service
-
+import java.util.Calendar
 import android.app.*
 import android.content.Context
 import android.content.Intent
@@ -125,7 +125,7 @@ class OverlayService : Service() {
                 allowFileAccess = true
                 cacheMode = WebSettings.LOAD_DEFAULT
                 setAppCacheEnabled(true)
-            }
+            }// setAppCacheEnabled(true)
             webViewClient = WebViewClient()
             loadUrl("file:///android_asset/pet.html")
             setOnTouchListener(createTouchListener())
