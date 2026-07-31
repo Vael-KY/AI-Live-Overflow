@@ -124,7 +124,7 @@ class OverlayService : Service() {
                 domStorageEnabled = true
                 allowFileAccess = true
                 cacheMode = WebSettings.LOAD_DEFAULT
-                setAppCacheEnabled(true)
+            
             }// setAppCacheEnabled(true)
             webViewClient = WebViewClient()
             loadUrl("file:///android_asset/pet.html")
