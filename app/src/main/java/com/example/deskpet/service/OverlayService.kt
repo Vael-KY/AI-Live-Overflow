@@ -126,8 +126,32 @@ class OverlayService : Service() {
                 cacheMode = WebSettings.LOAD_DEFAULT
             
             }// setAppCacheEnabled(true)
-            webViewClient = WebViewClient()
-            loadUrl("file:///android_asset/pet.html")
+            webViewClient = object : WebViewClient() {
+    override fun onPageFinished(view: WebView?, url: String?) {
+        super.onPageFinished(view, url)
+        // 如果加载失败，尝试重新加载
+        if (url == "file:///android_asset/pet.html") {
+            view?.evaluateJavascript("console.log('✅ pet.html 加载成功！')", null)
+        }
+        // ... 你原本的 onPageFinished 代码 ...
+    }
+
+    override fun onReceivedError(
+        view: WebView?,
+        errorCode: Int,
+        description: String?,
+        failingUrl: String?
+    ) {
+        super.onReceivedError(view, errorCode, description, failingUrl)
+        // 如果加载失败，显示错误信息
+        view?.loadData(
+            "<html><body><h3>⚠️ 加载失败</h3><p>错误: $description</p><p>URL: $failingUrl</p></body></html>",
+            "text/html",
+            "UTF-8"
+        )
+    }
+}
+loadUrl("file:///android_asset/pet.html")
             setOnTouchListener(createTouchListener())
 
             // WebView 就绪后注入依赖并启动子系统
