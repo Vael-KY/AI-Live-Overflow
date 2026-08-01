@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="90" height="120" viewBox="0 0 90 120">
+  <ellipse cx="45" cy="85" rx="30" ry="25" fill="#2E5A4C"/>
+  <ellipse cx="45" cy="85" rx="27" ry="22" fill="#3A6B5A"/>
+  <ellipse cx="45" cy="65" rx="12" ry="5" fill="#D4A574"/>
+  <circle cx="45" cy="48" r="25" fill="#F5E6D3"/>
+  
+  <ellipse cx="45" cy="38" rx="28" ry="20" fill="#7BA05B"/>
+  <ellipse cx="37" cy="35" rx="15" ry="18" fill="#6B8F4E"/>
+  <ellipse cx="53" cy="35" rx="15" ry="18" fill="#6B8F4E"/>
+  <ellipse cx="45" cy="30" rx="18" ry="15" fill="#7BA05B"/>
+  <!-- 炸毛 -->
+  <path d="M25 28 Q28 20 31 28" fill="#7BA05B"/>
+  <path d="M43 23 Q45 15 47 23" fill="#7BA05B"/>
+  <path d="M59 28 Q62 20 65 28" fill="#7BA05B"/>
+  
+  <path d="M30 43 Q35 33 40 40 Q43 35 45 41 Q47 35 52 40 Q55 33 60 43" fill="#6B8F4E"/>
+  
+  <!-- 紫眼睛（瞪大） -->
+  <ellipse cx="38" cy="50" rx="6" ry="6.5" fill="white"/>
+  <ellipse cx="52" cy="50" rx="6" ry="6.5" fill="white"/>
+  <ellipse cx="39" cy="51" rx="3.5" ry="4" fill="#9B59B6"/>
+  <ellipse cx="53" cy="51" rx="3.5" ry="4" fill="#9B59B6"/>
+  <ellipse cx="40" cy="50" rx="1.8" ry="1.8" fill="black"/>
+  <ellipse cx="54" cy="50" rx="1.8" ry="1.8" fill="black"/>
+  
+  <!-- 眉毛（倒八字） -->
+  <path d="M29 44 Q34 42 40 46" stroke="#5A7A3E" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M50 46 Q56 42 61 44" stroke="#5A7A3E" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- 嘴巴 -->
+  <path d="M38 57 L52 57" stroke="#333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  
+  <ellipse cx="25" cy="48" rx="5" ry="7" fill="#F5E6D3"/>
+  <ellipse cx="65" cy="48" rx="5" ry="7" fill="#F5E6D3"/>
+  
+  <path d="M25 98 L25 110 L35 110 L35 98 Q30 100 25 98" fill="#2C2C2C"/>
+  <path d="M55 98 L55 110 L65 110 L65 98 Q60 100 55 98" fill="#2C2C2C"/>
+  <rect x="28" y="95" width="34" height="15" rx="2.5" fill="#333"/>
+  <rect x="22" y="108" width="18" height="9" rx="4" fill="#F5F5F5"/>
+  <rect x="50" y="108" width="18" height="9" rx="4" fill="#F5F5F5"/>
+  
+  <rect x="65" y="65" width="18" height="22" rx="4" fill="#1A1A1A"/>
+  <path d="M65 68 Q74 63 80 68" stroke="#1A1A1A" stroke-width="2" fill="none"/>
+  
+  <!-- 生气符号 -->
+  <text x="15" y="25" font-size="14" fill="#E74C3C" font-weight="bold">#</text>
+  <text x="68" y="28" font-size="12" fill="#E74C3C" font-weight="bold">#</text>
+</svg>
