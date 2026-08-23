@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#FFF5F5">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🐾"
+        android:textSize="72sp"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AI-Live-Overflow"
+        android:textSize="24sp"
+        android:textColor="#333"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="让你的 AI 溢出对话框"
+        android:textSize="14sp"
+        android:textColor="#888"
+        android:layout_marginBottom="48dp" />
+
+    <Button
+        android:id="@+id/btn_start"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:text="✨ 启动桌宠"
+        android:textSize="16sp"
+        android:backgroundTint="#FF6B8A"
+        android:textColor="#FFFFFF"
+        android:paddingHorizontal="40dp"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btn_stop"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:text="关闭桌宠"
+        android:textSize="14sp"
+        android:backgroundTint="#DDDDDD"
+        android:textColor="#666"
+        android:paddingHorizontal="40dp" />
+
+</LinearLayout>

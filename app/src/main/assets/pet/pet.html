@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            overflow: hidden;
+        }
+        .pet-container {
+            width: 90px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            pointer-events: none;
+        }
+        .pet-container svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+            transition: transform 0.3s ease;
+        }
+        .pet-container svg:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="pet-container" id="petContainer">
+        <!-- SVG 由 JavaScript 动态加载 -->
+    </div>
+
+    <script>
+        // 可用的表情列表
+        const EMOJI_LIST = ['idle', 'happy', 'sad', 'angry', 'sleep'];
+        let currentEmoji = 'idle';
+        let isVisible = true;
+
+        // 获取容器
+        const container = document.getElementById('petContainer');
+
+        // 加载 SVG 文件
+        function loadEmoji(name) {
+            if (!EMOJI_LIST.includes(name)) {
+                console.warn('未知表情:', name);
+                return;
+            }
+            currentEmoji = name;
+            fetch(`pet/${name}.svg`)
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.text();
+                })
+                .then(svgText => {
+                    container.innerHTML = svgText;
+                    // 给 SVG 加上 pointer-events: none，让点击穿透到上层
+                    const svg = container.querySelector('svg');
+                    if (svg) {
+                        svg.style.pointerEvents = 'none';
+                        svg.style.width = '100%';
+                        svg.style.height = '100%';
+                        svg.style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    console.warn('加载 SVG 失败:', name, err);
+                    // 失败时显示占位文字
+                    container.innerHTML = `<div style="color:#888;font-size:12px;font-family:sans-serif;">🐾</div>`;
+                });
+        }
+
+        // === 与 Java 通信的接口 ===
+
+        // 1. 切换表情
+        window.setEmoji = function(name) {
+            if (EMOJI_LIST.includes(name)) {
+                loadEmoji(name);
+            } else {
+                console.warn('未知表情:', name);
+            }
+        };
+
+        // 2. 显示/隐藏
+        window.setVisible = function(visible) {
+            isVisible = visible;
+            container.style.display = visible ? 'flex' : 'none';
+        };
+
+        // 3. 获取当前表情
+        window.getCurrentEmoji = function() {
+            return currentEmoji;
+        };
+
+        // 4. 获取可用表情列表
+        window.getEmojiList = function() {
+            return EMOJI_LIST;
+        };
+
+        // 5. 随机表情
+        window.randomEmoji = function() {
+            const randomName = EMOJI_LIST[Math.floor(Math.random() * EMOJI_LIST.length)];
+            loadEmoji(randomName);
+            return randomName;
+        };
+
+        // 6. 动画效果（震动）
+        window.shake = function(duration = 300) {
+            const svg = container.querySelector('svg');
+            if (!svg) return;
+            svg.style.transition = 'transform 0.05s ease';
+            let count = 0;
+            const interval = setInterval(() => {
+                svg.style.transform = count % 2 === 0 ? 'rotate(-5deg) scale(1.05)' : 'rotate(5deg) scale(0.95)';
+                count++;
+                if (count > 10) {
+                    clearInterval(interval);
+                    svg.style.transform = 'scale(1) rotate(0deg)';
+                    svg.style.transition = 'transform 0.3s ease';
+                }
+            }, 30);
+        };
+
+        // 7. 自动空闲动画（每30秒随机切换）
+        let autoIdleTimer = null;
+        window.startIdleAnimation = function(interval = 30000) {
+            if (autoIdleTimer) clearInterval(autoIdleTimer);
+            autoIdleTimer = setInterval(() => {
+                if (isVisible && currentEmoji === 'idle') {
+                    // 30% 概率切换表情再切回来
+                    if (Math.random() < 0.3) {
+                        const temp = EMOJI_LIST[Math.floor(Math.random() * EMOJI_LIST.length)];
+                        if (temp !== 'idle') {
+                            loadEmoji(temp);
+                            setTimeout(() => {
+                                if (isVisible) loadEmoji('idle');
+                            }, 2000);
+                        }
+                    }
+                }
+            }, interval);
+        };
+
+        // 8. 停止空闲动画
+        window.stopIdleAnimation = function() {
+            if (autoIdleTimer) {
+                clearInterval(autoIdleTimer);
+                autoIdleTimer = null;
+            }
+        };
+
+        // === 初始化 ===
+        loadEmoji('idle');
+        // 启动空闲动画
+        window.startIdleAnimation(30000);
+
+        // 点击/触摸穿透（防止拦截手势）
+        document.addEventListener('click', (e) => {
+            e.stopPropagation();
+        }, true);
+
+        console.log('🐾 桌宠已加载！可用表情:', EMOJI_LIST);
+        console.log('💡 使用方法: setEmoji("happy") 切换表情');
+        console.log('💡 使用方法: shake() 震动动画');
+        console.log('💡 使用方法: randomEmoji() 随机切换');
+    </script>
+</body>
+  </html>
